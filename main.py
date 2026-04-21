@@ -67,7 +67,7 @@ if __name__ == '__main__':
             # Taking btach from sampler
             u, seq, pos, neg = sampler.next_batch()
             
-            # Convert ke tensor
+            # Convert to tensor
             seq = torch.as_tensor(np.array(seq), dtype=torch.long, device=args.device)
             pos = torch.as_tensor(np.array(pos), dtype=torch.long, device=args.device)
             neg = torch.as_tensor(np.array(neg), dtype=torch.long, device=args.device)
