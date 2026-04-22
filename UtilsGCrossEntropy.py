@@ -200,11 +200,11 @@ def evaluate(model, dataset, args):
 
         item_idx = _sample_eval_items(test[u][0], rated, itemnum)
 
-        predictions = -model.predict(*[np.array(l) for l in [[u], [seq], item_idx]])
-        predictions = predictions[0]
+        scores = model.predict(*[np.array(l) for l in [[u], [seq], item_idx]])
+        scores = scores[0].detach().cpu().numpy()
 
-        # Rank of the true item among candidates
-        rank = predictions.argsort().argsort()[0].item()
+        target_score = scores[0]
+        rank = int(np.sum(scores[1:] >= target_score))
 
         valid_user += 1
 
@@ -267,10 +267,11 @@ def evaluate_valid(model, dataset, args):
 
         item_idx = _sample_eval_items(valid[u][0], rated, itemnum)
 
-        predictions = -model.predict(*[np.array(l) for l in [[u], [seq], item_idx]])
-        predictions = predictions[0]
+        scores = model.predict(*[np.array(l) for l in [[u], [seq], item_idx]])
+        scores = scores[0].detach().cpu().numpy()
 
-        rank = predictions.argsort().argsort()[0].item()
+        target_score = scores[0]
+        rank = int(np.sum(scores[1:] >= target_score))
 
         valid_user += 1
 

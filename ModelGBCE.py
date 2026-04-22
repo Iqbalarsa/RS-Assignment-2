@@ -23,6 +23,9 @@ class PointWiseFeedForward(torch.nn.Module):
             )
         )
         outputs = outputs.transpose(-1, -2)
+
+        # Residual connection inside FFN block
+        outputs += inputs
         return outputs
 
 
@@ -33,13 +36,13 @@ class SASRec(torch.nn.Module):
         self.user_num = user_num
         self.item_num = item_num
         self.dev = args.device
-        self.norm_first = args.norm_first
 
-        # Item and positional embeddings
+        # Embeddings
         self.item_emb = torch.nn.Embedding(self.item_num + 1, args.hidden_units, padding_idx=0)
-        self.pos_emb = torch.nn.Embedding(args.maxlen + 1, args.hidden_units, padding_idx=0)
+        self.pos_emb = torch.nn.Embedding(args.maxlen, args.hidden_units)
         self.emb_dropout = torch.nn.Dropout(p=args.dropout_rate)
 
+        # Transformer blocks
         self.attention_layernorms = torch.nn.ModuleList()
         self.attention_layers = torch.nn.ModuleList()
         self.forward_layernorms = torch.nn.ModuleList()
@@ -76,70 +79,53 @@ class SASRec(torch.nn.Module):
         seqs = self.item_emb(log_seqs)
         seqs *= self.item_emb.embedding_dim ** 0.5
 
-        # Position ids: keep padding positions at 0
-        poss = torch.arange(1, log_seqs.shape[1] + 1, device=self.dev).unsqueeze(0)
-        poss = poss.repeat(log_seqs.shape[0], 1)
-        poss *= (log_seqs != 0)
+        # Positional embeddings
+        positions = torch.arange(log_seqs.shape[1], device=self.dev).unsqueeze(0)
+        positions = positions.expand(log_seqs.shape[0], -1)
+        seqs += self.pos_emb(positions)
 
-        # Add positional embeddings
-        seqs += self.pos_emb(poss)
         seqs = self.emb_dropout(seqs)
 
-        # Causal mask: only attend to current/past positions
+        # Mask padded positions in the sequence itself
+        timeline_mask = (log_seqs == 0)
+        seqs = seqs.masked_fill(timeline_mask.unsqueeze(-1), 0.0)
+
+        # Causal mask: no looking ahead
         tl = seqs.shape[1]
         attention_mask = ~torch.tril(
             torch.ones((tl, tl), dtype=torch.bool, device=self.dev)
         )
 
-        # Padding mask: ignore padded positions
-        padding_mask = (log_seqs == 0)
-
         for i in range(len(self.attention_layers)):
             # MultiheadAttention expects (T, B, C)
-            seqs = torch.transpose(seqs, 0, 1)
+            seqs = seqs.transpose(0, 1)
 
-            if self.norm_first:
-                x = self.attention_layernorms[i](seqs)
-                mha_outputs, _ = self.attention_layers[i](
-                    x, x, x,
-                    attn_mask=attention_mask,
-                    key_padding_mask=padding_mask
-                )
-                seqs = seqs + mha_outputs
-                seqs = torch.transpose(seqs, 0, 1)
+            Q = self.attention_layernorms[i](seqs)
+            mha_outputs, _ = self.attention_layers[i](
+                Q, seqs, seqs,
+                attn_mask=attention_mask
+            )
 
-                seqs = seqs + self.forward_layers[i](
-                    self.forward_layernorms[i](seqs)
-                )
-            else:
-                mha_outputs, _ = self.attention_layers[i](
-                    seqs, seqs, seqs,
-                    attn_mask=attention_mask,
-                    key_padding_mask=padding_mask
-                )
-                seqs = self.attention_layernorms[i](seqs + mha_outputs)
-                seqs = torch.transpose(seqs, 0, 1)
+            # Residual after attention
+            seqs = Q + mha_outputs
 
-                seqs = self.forward_layernorms[i](
-                    seqs + self.forward_layers[i](seqs)
-                )
+            # Back to (B, T, C)
+            seqs = seqs.transpose(0, 1)
 
-            # Clean any NaNs/Infs before masking padding
-            seqs = torch.nan_to_num(seqs, nan=0.0, posinf=0.0, neginf=0.0)
+            # FFN block
+            seqs = self.forward_layernorms[i](seqs)
+            seqs = self.forward_layers[i](seqs)
 
-            # Force padding positions to stay zero
-            seqs = seqs.masked_fill(padding_mask.unsqueeze(-1), 0.0)
+            # Keep padded positions zero
+            seqs = seqs.masked_fill(timeline_mask.unsqueeze(-1), 0.0)
 
         log_feats = self.last_layernorm(seqs)
-
-        # Final cleanup for numerical stability
-        log_feats = torch.nan_to_num(log_feats, nan=0.0, posinf=0.0, neginf=0.0)
-        log_feats = log_feats.masked_fill(padding_mask.unsqueeze(-1), 0.0)
+        log_feats = log_feats.masked_fill(timeline_mask.unsqueeze(-1), 0.0)
 
         return log_feats
 
     def forward(self, user_ids, log_seqs, pos_seqs, neg_seqs):
-        # Sequence representations
+        # Sequence features
         log_feats = self.log2feats(log_seqs)   # [B, T, H]
 
         # Positive and negative item embeddings
@@ -149,22 +135,14 @@ class SASRec(torch.nn.Module):
         pos_embs = self.item_emb(pos_seqs)     # [B, T, H]
         neg_embs = self.item_emb(neg_seqs)     # [B, T, H]
 
-        # Scores for positive and negative candidates
-        pos_logits = (log_feats * pos_embs).sum(dim=-1).unsqueeze(-1)  # [B, T, 1]
-        neg_logits = (log_feats * neg_embs).sum(dim=-1).unsqueeze(-1)  # [B, T, 1]
+        # BCE training scores
+        pos_logits = (log_feats * pos_embs).sum(dim=-1)   # [B, T]
+        neg_logits = (log_feats * neg_embs).sum(dim=-1)   # [B, T]
 
-        # Extra cleanup before CE loss
-        pos_logits = torch.nan_to_num(pos_logits, nan=0.0, posinf=0.0, neginf=0.0)
-        neg_logits = torch.nan_to_num(neg_logits, nan=0.0, posinf=0.0, neginf=0.0)
-
-        # For CrossEntropyLoss: class 0 = positive, class 1 = negative
-        logits = torch.cat([pos_logits, neg_logits], dim=-1)           # [B, T, 2]
-        logits = torch.nan_to_num(logits, nan=0.0, posinf=0.0, neginf=0.0)
-
-        return logits
+        return pos_logits, neg_logits
 
     def predict(self, user_ids, log_seqs, item_indices):
-        # Sequence representations
+        # Sequence features
         log_feats = self.log2feats(log_seqs)
 
         # Use last position for next-item prediction
@@ -174,6 +152,4 @@ class SASRec(torch.nn.Module):
         item_embs = self.item_emb(item_indices)  # [B, I, H] or [I, H]
 
         logits = item_embs.matmul(final_feat.unsqueeze(-1)).squeeze(-1)
-        logits = torch.nan_to_num(logits, nan=0.0, posinf=0.0, neginf=0.0)
-
         return logits
