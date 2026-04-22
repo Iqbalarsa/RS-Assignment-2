@@ -1,16 +1,16 @@
 {
   "param_name": "num_blocks",
   "param_value": 1,
-  "best_valid_ndcg10_mean": 0.5644517651709422,
-  "best_valid_ndcg10_std": 0.0,
-  "test_ndcg10_mean": 0.5434351636477446,
-  "test_ndcg10_std": 0.0,
-  "test_recall10_mean": 0.7862114683460392,
-  "test_recall10_std": 0.0,
-  "test_ndcg20_mean": 0.5689328875743566,
-  "test_ndcg20_std": 0.0,
-  "test_recall20_mean": 0.8863109048723898,
-  "test_recall20_std": 0.0,
-  "runtime_sec_mean": 195.4038689136505,
-  "runtime_sec_std": 0.0
+  "best_valid_ndcg10_mean": 0.5637871312581616,
+  "best_valid_ndcg10_std": 0.0015282532585423753,
+  "test_ndcg10_mean": 0.5413723840615471,
+  "test_ndcg10_std": 0.002366464727341838,
+  "test_recall10_mean": 0.7861009833167606,
+  "test_recall10_std": 0.0001562494268448942,
+  "test_ndcg20_mean": 0.5673749845853527,
+  "test_ndcg20_std": 0.0023616853385090737,
+  "test_recall20_mean": 0.8882443928847642,
+  "test_recall20_std": 0.001625669977854623,
+  "runtime_sec_mean": 191.38079277674356,
+  "runtime_sec_std": 0.1902926867375256
 }

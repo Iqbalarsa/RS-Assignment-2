@@ -1,6 +1,6 @@
 {
-  "param_name": "num_blocks",
-  "param_value": 2,
+  "param_name": "num_heads",
+  "param_value": 1,
   "best_valid_ndcg10_mean": 0.5703679607985778,
   "best_valid_ndcg10_std": 0.0006978043115228416,
   "test_ndcg10_mean": 0.5449870499073551,
@@ -11,6 +11,6 @@
   "test_ndcg20_std": 0.001764942562602601,
   "test_recall20_mean": 0.8942105844658048,
   "test_recall20_std": 0.001421354582948711,
-  "runtime_sec_mean": 253.19920682907104,
-  "runtime_sec_std": 0.32011357319320355
+  "runtime_sec_mean": 253.20697577794394,
+  "runtime_sec_std": 0.22799503007693572
 }

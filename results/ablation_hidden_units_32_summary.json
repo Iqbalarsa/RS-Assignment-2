@@ -1,0 +1,16 @@
+{
+  "param_name": "hidden_units",
+  "param_value": 32,
+  "best_valid_ndcg10_mean": 0.545545363134277,
+  "best_valid_ndcg10_std": 0.001519666789350905,
+  "test_ndcg10_mean": 0.5234662177540073,
+  "test_ndcg10_std": 0.003497146519242003,
+  "test_recall10_mean": 0.7779803336647885,
+  "test_recall10_std": 0.004873880234253172,
+  "test_ndcg20_mean": 0.5512753412959047,
+  "test_ndcg20_std": 0.002960382547190645,
+  "test_recall20_mean": 0.8873605126505358,
+  "test_recall20_std": 0.002687081318531759,
+  "runtime_sec_mean": 250.11111823717752,
+  "runtime_sec_std": 0.2876337201908859
+}
