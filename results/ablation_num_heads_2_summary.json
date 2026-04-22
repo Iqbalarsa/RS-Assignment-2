@@ -11,6 +11,6 @@
   "test_ndcg20_std": 0.0016000506314630331,
   "test_recall20_mean": 0.8964755275660149,
   "test_recall20_std": 0.0013142611041177877,
-  "runtime_sec_mean": 255.29886809984842,
-  "runtime_sec_std": 0.22967637090584073
+  "runtime_sec_mean": 252.63465229670206,
+  "runtime_sec_std": 0.2442587237649602
 }

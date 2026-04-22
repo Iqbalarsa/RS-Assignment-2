@@ -247,7 +247,7 @@ def run_all_required_experiments(base_cfg, n_repetitions=3, smooth_window=None, 
 
     run_ablation(
         param_name="num_heads",
-        values=[1, 2, 4],
+        values=[1, 2, 5],
         base_cfg=base_cfg,
         n_repetitions=n_repetitions,
         smooth_window=smooth_window,
@@ -325,7 +325,7 @@ def main():
     elif args.mode == "ablation_heads":
         run_ablation(
             param_name="num_heads",
-            values=[1, 2, 4],
+            values=[1, 2, 5],
             base_cfg=cfg,
             n_repetitions=args.n_repetitions,
             smooth_window=args.smooth_window,
