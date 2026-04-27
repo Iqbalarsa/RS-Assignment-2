@@ -1,0 +1,16 @@
+{
+  "param_name": "num_heads",
+  "param_value": 2,
+  "best_valid_ndcg10_mean": 0.09998799921470088,
+  "best_valid_ndcg10_std": 0.0018172708098918848,
+  "test_ndcg10_mean": 0.09637108725099928,
+  "test_ndcg10_std": 0.0011571729041520867,
+  "test_recall10_mean": 0.18462048392442823,
+  "test_recall10_std": 0.002020698393345695,
+  "test_ndcg20_mean": 0.12069050676440157,
+  "test_ndcg20_std": 0.0015453172006414133,
+  "test_recall20_mean": 0.28107391448458735,
+  "test_recall20_std": 0.003415220752640321,
+  "runtime_sec_mean": 379.7325352827708,
+  "runtime_sec_std": 16.96506447433643
+}

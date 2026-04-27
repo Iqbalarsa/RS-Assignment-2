@@ -1,0 +1,16 @@
+{
+  "param_name": "maxlen",
+  "param_value": 50,
+  "best_valid_ndcg10_mean": 0.09623462395959759,
+  "best_valid_ndcg10_std": 0.0015839953301885071,
+  "test_ndcg10_mean": 0.09090979884679512,
+  "test_ndcg10_std": 0.00033855280443961214,
+  "test_recall10_mean": 0.1753397414650315,
+  "test_recall10_std": 0.001965578043824684,
+  "test_ndcg20_mean": 0.11408866933328866,
+  "test_ndcg20_std": 0.0009152045317814391,
+  "test_recall20_mean": 0.2676499834272456,
+  "test_recall20_std": 0.0031993000189084702,
+  "runtime_sec_mean": 360.15631914138794,
+  "runtime_sec_std": 12.69091759722624
+}
