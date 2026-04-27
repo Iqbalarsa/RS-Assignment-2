@@ -174,7 +174,7 @@ The attention-head ablation only uses valid values that are compatible with the 
 
 The selected final configuration after the ablation study is:
 
-- num_blocks = 2
+- num_blocks = 1
 - hidden_units = 100
 - num_heads = 1
 - maxlen = 200
