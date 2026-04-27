@@ -1,4 +1,5 @@
-Assignment 2 - SASRec on MovieLens 1M
+# Assignment 2 - SASRec on MovieLens 1M
+
 
 This repository contains our implementation of SASRec (Self-Attentive Sequential Recommendation) for Assignment 2 in Recommender Systems.
 
