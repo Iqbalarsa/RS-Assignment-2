@@ -227,7 +227,70 @@ def evaluate(model, dataset, args):
         RECALL_20 / valid_user
     )
 
+def evaluateFull(model, dataset, args):
+    [train, valid, test, usernum, itemnum] = copy.deepcopy(dataset)
 
+    NDCG_10 = 0.0
+    RECALL_10 = 0.0
+    NDCG_20 = 0.0
+    RECALL_20 = 0.0
+    valid_user = 0.0
+    
+    # list all items
+    all_item_indices = np.arange(1, itemnum + 1)
+
+    if usernum > 10000:
+        users = random.sample(range(1, usernum + 1), 10000)
+    else:
+        users = range(1, usernum + 1)
+
+    for u in users:
+        if len(train[u]) < 1 or len(test[u]) < 1: continue
+
+        seq = np.zeros([args.maxlen], dtype=np.int32)
+        idx = args.maxlen - 1
+        seq[idx] = valid[u][0] 
+        idx -= 1
+        for i in reversed(train[u]):
+            seq[idx] = i
+            idx -= 1
+            if idx == -1: break
+        
+        predictions = -model.predict(*[np.array(l) for l in [[u], [seq], all_item_indices]])
+        predictions = predictions[0]
+        
+        # Masking
+        rated = set(train[u])
+        rated.add(valid[u][0])
+        rated.add(0) # padding
+        for item in rated:
+            if item > 0 and item <= itemnum:
+                predictions[item - 1] = np.inf 
+
+        target_item = test[u][0]
+        rank = predictions.argsort().argsort()[target_item - 1].item()
+
+        valid_user += 1
+
+        if rank < 10:
+            NDCG_10 += 1 / np.log2(rank + 2)
+            RECALL_10 += 1
+
+        if rank < 20:
+            NDCG_20 += 1 / np.log2(rank + 2)
+            RECALL_20 += 1
+
+        if valid_user % 100 == 0:
+            print('.', end="")
+            sys.stdout.flush()
+
+    return (
+        NDCG_10 / valid_user,
+        RECALL_10 / valid_user,
+        NDCG_20 / valid_user,
+        RECALL_20 / valid_user
+    )
+    
 # Evaluate on validation set
 def evaluate_valid(model, dataset, args):
     [train, valid, test, usernum, itemnum] = copy.deepcopy(dataset)
@@ -272,6 +335,75 @@ def evaluate_valid(model, dataset, args):
 
         target_score = scores[0]
         rank = int(np.sum(scores[1:] >= target_score))
+
+        valid_user += 1
+
+        if rank < 10:
+            NDCG_10 += 1 / np.log2(rank + 2)
+            RECALL_10 += 1
+
+        if rank < 20:
+            NDCG_20 += 1 / np.log2(rank + 2)
+            RECALL_20 += 1
+
+        if valid_user % 100 == 0:
+            print('.', end="")
+            sys.stdout.flush()
+
+    return (
+        NDCG_10 / valid_user,
+        RECALL_10 / valid_user,
+        NDCG_20 / valid_user,
+        RECALL_20 / valid_user
+    )
+    
+def evaluate_validFull(model, dataset, args):
+    [train, valid, test, usernum, itemnum] = copy.deepcopy(dataset)
+
+    NDCG_10 = 0.0
+    RECALL_10 = 0.0
+    NDCG_20 = 0.0
+    RECALL_20 = 0.0
+    valid_user = 0.0
+    
+    all_item_indices = np.arange(1, itemnum + 1)
+
+    if usernum > 10000:
+        users = random.sample(range(1, usernum + 1), 10000)
+    else:
+        users = range(1, usernum + 1)
+
+    for u in users:
+        if u not in train or u not in valid or u not in test:
+            continue
+        if len(train[u]) < 1 or len(valid[u]) < 1:
+            continue
+
+        seq = np.zeros([args.maxlen], dtype=np.int32)
+        idx = args.maxlen - 1
+
+        # For validation, use only the training prefix
+        for i in reversed(train[u]):
+            seq[idx] = i
+            idx -= 1
+            if idx == -1:
+                break
+        
+        # Predcition for all items
+        predictions = -model.predict(*[np.array(l) for l in [[u], [seq], all_item_indices]])
+        predictions = predictions[0]
+        
+        
+        # Exclude seen items from negative sampling
+        # Masking
+        rated = set(train[u])
+        rated.add(0)
+        for item in rated:
+            if 0 < item <= itemnum:
+                predictions[item - 1] = np.inf
+
+        target_item = valid[u][0]
+        rank = predictions.argsort().argsort()[target_item - 1].item()
 
         valid_user += 1
 

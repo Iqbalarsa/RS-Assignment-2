@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from ModelGBCE import SASRec
-from UtilsGCrossEntropy import WarpSampler, evaluate, evaluate_valid, preprocess_ml1m, split_data
+from UtilsGCrossEntropy import WarpSampler, evaluateFull, evaluate_validFull, preprocess_ml1m, split_data
 import numpy as np
 
 
@@ -13,7 +13,7 @@ class Args:
     batch_size = 128
     lr = 0.001
     maxlen = 100             # Maximal Length of Sequence
-    hidden_units = 50
+    hidden_units = 100
     num_blocks = 2           # Number of transformer blocks
     num_heads = 1
     dropout_rate = 0.2
@@ -143,7 +143,7 @@ def run_training(args, run_name="run", verbose=True):
             # Evaluate on validation set only
             model.eval()
             with torch.no_grad():
-                t_valid = evaluate_valid(model, dataset, args)
+                t_valid = evaluate_validFull(model, dataset, args)
 
             current_ndcg = t_valid[0]  # NDCG@10
 
@@ -208,7 +208,7 @@ def run_training(args, run_name="run", verbose=True):
     # Final test evaluation
     model.eval()
     with torch.no_grad():
-        t_test = evaluate(model, dataset, args)
+        t_test = evaluateFull(model, dataset, args)
 
     if verbose:
         print(

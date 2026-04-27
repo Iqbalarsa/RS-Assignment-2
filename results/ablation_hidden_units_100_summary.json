@@ -1,16 +1,16 @@
 {
   "param_name": "hidden_units",
   "param_value": 100,
-  "best_valid_ndcg10_mean": 0.5830016858849882,
-  "best_valid_ndcg10_std": 0.002728154543382961,
-  "test_ndcg10_mean": 0.5557590319792248,
-  "test_ndcg10_std": 0.0029429948367990497,
-  "test_recall10_mean": 0.7982543365373992,
-  "test_recall10_std": 0.0026110490107383597,
-  "test_ndcg20_mean": 0.5803717343652052,
-  "test_ndcg20_std": 0.0023913134005293483,
-  "test_recall20_mean": 0.8951497072146725,
-  "test_recall20_std": 0.0010937459879142182,
-  "runtime_sec_mean": 200.4966108004252,
-  "runtime_sec_std": 8.25062985107123
+  "best_valid_ndcg10_mean": 0.1141704184745476,
+  "best_valid_ndcg10_std": 0.0007804614846163854,
+  "test_ndcg10_mean": 0.10557354572049125,
+  "test_ndcg10_std": 0.0017471358034071825,
+  "test_recall10_mean": 0.20097226825765105,
+  "test_recall10_std": 0.002669991376332901,
+  "test_ndcg20_mean": 0.13165089781155587,
+  "test_ndcg20_std": 0.0019949022891462788,
+  "test_recall20_mean": 0.304441498176997,
+  "test_recall20_std": 0.003603065707462249,
+  "runtime_sec_mean": 325.4179673194885,
+  "runtime_sec_std": 44.5230585385885
 }
